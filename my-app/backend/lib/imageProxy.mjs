@@ -3,7 +3,12 @@ import { InferenceClient } from "@huggingface/inference";
 
 export const IMAGE_ROUTE = "/api/image/generate";
 
-const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+const GEMINI_IMAGE_MODEL_FALLBACKS = [
+  DEFAULT_GEMINI_IMAGE_MODEL,
+  "gemini-2.5-flash-image-preview",
+  "gemini-2.0-flash-preview-image-generation",
+];
 const GEMINI_IMAGE_BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -84,6 +89,28 @@ const extractGeminiImagePart = (payload) =>
     ?.flatMap((candidate) => candidate?.content?.parts || [])
     .find((part) => part?.inlineData?.data);
 
+const createGeminiModelList = (env) => {
+  const preferredModel = env.GEMINI_IMAGE_MODEL?.trim();
+
+  return preferredModel
+    ? [...new Set([preferredModel, ...GEMINI_IMAGE_MODEL_FALLBACKS])]
+    : GEMINI_IMAGE_MODEL_FALLBACKS;
+};
+
+const shouldRetryGeminiWithAnotherModel = (statusCode, message = "") => {
+  const normalized = message.toLowerCase();
+
+  return (
+    statusCode === 404 ||
+    statusCode === 429 ||
+    normalized.includes("quota") ||
+    normalized.includes("rate limit") ||
+    normalized.includes("not found") ||
+    normalized.includes("unsupported") ||
+    normalized.includes("not available")
+  );
+};
+
 const parseJson = (rawBody) => {
   try {
     return rawBody ? JSON.parse(rawBody) : {};
@@ -125,78 +152,100 @@ const createHfImageResponse = async ({
 
 const createGeminiImageResponse = async ({
   apiKey,
+  candidateModels,
   prompt,
   requestedModel,
   requestedProvider,
-  responseModel,
 }) => {
-  try {
-    const response = await fetch(
-      `${GEMINI_IMAGE_BASE_URL}/${responseModel}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            responseModalities: ["TEXT", "IMAGE"],
+  let lastFailure = buildResponse(500, {
+    code: "GEMINI_IMAGE_FALLBACK_FAILED",
+    message: "Gemini image generation failed.",
+    details: [],
+  });
+
+  for (const responseModel of candidateModels) {
+    try {
+      const response = await fetch(
+        `${GEMINI_IMAGE_BASE_URL}/${responseModel}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
           },
-        }),
-      },
-    );
-    const rawBody = await response.text();
-    const payload = parseJson(rawBody);
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              responseModalities: ["TEXT", "IMAGE"],
+            },
+          }),
+        },
+      );
+      const rawBody = await response.text();
+      const payload = parseJson(rawBody);
 
-    if (!response.ok) {
-      const message =
-        payload?.error?.message ||
-        payload?.message ||
-        "Gemini image generation failed.";
+      if (!response.ok) {
+        const message =
+          payload?.error?.message ||
+          payload?.message ||
+          "Gemini image generation failed.";
 
-      return buildResponse(response.status || 500, {
+        lastFailure = buildResponse(response.status || 500, {
+          code: "GEMINI_IMAGE_FALLBACK_FAILED",
+          message,
+          details: [`Gemini image model: ${responseModel}`],
+        });
+
+        if (
+          shouldRetryGeminiWithAnotherModel(
+            response.status || 500,
+            message,
+          )
+        ) {
+          continue;
+        }
+
+        return lastFailure;
+      }
+
+      const imagePart = extractGeminiImagePart(payload);
+
+      if (!imagePart?.inlineData?.data) {
+        lastFailure = buildResponse(502, {
+          code: "GEMINI_IMAGE_EMPTY",
+          message:
+            "Gemini returned a response without image data for this prompt.",
+          details: [`Gemini image model: ${responseModel}`],
+        });
+        continue;
+      }
+
+      return buildResponse(200, {
+        imageBase64: imagePart.inlineData.data,
+        mimeType: imagePart.inlineData.mimeType || "image/png",
+        model: responseModel,
+        provider: "google-gemini",
+        requestedModel,
+        requestedProvider,
+      });
+    } catch (error) {
+      lastFailure = buildResponse(500, {
         code: "GEMINI_IMAGE_FALLBACK_FAILED",
-        message,
+        message: error?.message || "Gemini image generation failed.",
         details: [`Gemini image model: ${responseModel}`],
       });
     }
-
-    const imagePart = extractGeminiImagePart(payload);
-
-    if (!imagePart?.inlineData?.data) {
-      return buildResponse(502, {
-        code: "GEMINI_IMAGE_EMPTY",
-        message:
-          "Gemini returned a response without image data for this prompt.",
-        details: [`Gemini image model: ${responseModel}`],
-      });
-    }
-
-    return buildResponse(200, {
-      imageBase64: imagePart.inlineData.data,
-      mimeType: imagePart.inlineData.mimeType || "image/png",
-      model: responseModel,
-      provider: "google-gemini",
-      requestedModel,
-      requestedProvider,
-    });
-  } catch (error) {
-    return buildResponse(500, {
-      code: "GEMINI_IMAGE_FALLBACK_FAILED",
-      message: error?.message || "Gemini image generation failed.",
-      details: [`Gemini image model: ${responseModel}`],
-    });
   }
+
+  return lastFailure;
 };
 
 export const createImageProxyResponse = async ({
@@ -212,8 +261,7 @@ export const createImageProxyResponse = async ({
   const token = getHfToken(env);
   const provider = env.HF_PROVIDER?.trim() || "hf-inference";
   const geminiApiKey = getGeminiApiKey(env);
-  const geminiImageModel =
-    env.GEMINI_IMAGE_MODEL?.trim() || DEFAULT_GEMINI_IMAGE_MODEL;
+  const geminiCandidateModels = createGeminiModelList(env);
 
   let hfResult = null;
 
@@ -243,10 +291,10 @@ export const createImageProxyResponse = async ({
 
   const geminiResult = await createGeminiImageResponse({
     apiKey: geminiApiKey,
+    candidateModels: geminiCandidateModels,
     prompt,
     requestedModel: model,
     requestedProvider: provider,
-    responseModel: geminiImageModel,
   });
 
   if (geminiResult.statusCode === 200) {

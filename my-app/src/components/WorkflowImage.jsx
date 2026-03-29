@@ -29,6 +29,19 @@ const buildFriendlyError = (error) => {
     };
   }
 
+  if (error?.code === "IMAGE_PROVIDER_UNAVAILABLE") {
+    return {
+      message:
+        "The backend tried both Hugging Face and Gemini image generation, but neither provider could complete the request right now.",
+      title: "All image providers unavailable",
+      steps: [
+        "Confirm HF_TOKEN starts with hf_ and has available Hugging Face inference access or credits.",
+        "Confirm GEMINI_API_KEY is active on the backend and has image-generation quota or billing enabled.",
+        "Restart local dev or redeploy the backend after updating the backend environment variables.",
+      ],
+    };
+  }
+
   if (error?.status === 401 || error?.code === "HF_AUTH_INVALID") {
     return {
       message,
@@ -43,7 +56,6 @@ const buildFriendlyError = (error) => {
 
   if (
     error?.status === 500 ||
-    error?.code === "IMAGE_PROVIDER_UNAVAILABLE" ||
     error?.code === "GEMINI_IMAGE_FALLBACK_FAILED" ||
     error?.code === "HF_TOKEN_INVALID_FORMAT" ||
     error?.code === "HF_TOKEN_MISSING" ||
