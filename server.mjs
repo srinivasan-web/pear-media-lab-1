@@ -1,13 +1,8 @@
 import { createServer } from "node:http";
 import { createReadStream, existsSync } from "node:fs";
 import { extname, join } from "node:path";
-import { loadEnv } from "vite";
+import { getEnv } from "./lib/env.mjs";
 import { createImageProxyResponse, IMAGE_ROUTE } from "./lib/imageProxy.mjs";
-
-const getEnv = () => ({
-  ...loadEnv(process.env.NODE_ENV || "development", process.cwd(), ""),
-  ...process.env,
-});
 
 const env = getEnv();
 const port = Number(env.PORT || env.IMAGE_API_PORT || 8787);
