@@ -11,10 +11,11 @@ import usePersistentState from "../hooks/usePersistentState";
 
 const buildFriendlyError = (error) => {
   const message = error?.message || "Something went wrong. Try again.";
+  const normalizedMessage = message.toLowerCase();
 
   if (
-    message.toLowerCase().includes("quota exceeded") ||
-    message.toLowerCase().includes("free_tier")
+    normalizedMessage.includes("quota exceeded") ||
+    normalizedMessage.includes("free_tier")
   ) {
     return {
       message:
@@ -23,6 +24,22 @@ const buildFriendlyError = (error) => {
       steps: [
         "Use Gemini 2.5 Flash for free-tier friendly requests.",
         "Wait for the quota window to reset if you want to try Pro again.",
+      ],
+    };
+  }
+
+  if (
+    error?.code === "HF_CREDITS_DEPLETED" ||
+    normalizedMessage.includes("monthly included credits")
+  ) {
+    return {
+      message:
+        "Hugging Face routed credits are depleted. The backend can switch to Gemini image generation if GEMINI_API_KEY is configured server-side.",
+      title: "Hugging Face credits depleted",
+      steps: [
+        "Set GEMINI_API_KEY in backend/.env for local development or in the backend hosting environment for production.",
+        "Restart local dev or redeploy the backend after updating the server environment.",
+        "If you prefer Hugging Face only, purchase pre-paid credits or upgrade the Hugging Face plan.",
       ],
     };
   }
@@ -42,6 +59,8 @@ const buildFriendlyError = (error) => {
 
   if (
     error?.status === 500 ||
+    error?.code === "IMAGE_PROVIDER_UNAVAILABLE" ||
+    error?.code === "GEMINI_IMAGE_FALLBACK_FAILED" ||
     error?.code === "HF_TOKEN_INVALID_FORMAT" ||
     error?.code === "HF_TOKEN_MISSING" ||
     error?.code === "HF_IMAGE_FAILED"
@@ -51,6 +70,7 @@ const buildFriendlyError = (error) => {
       title: "Image generation server needs attention",
       steps: [
         "Check backend/.env for local development or the backend hosting environment for production, and confirm HF_TOKEN starts with hf_.",
+        "Set GEMINI_API_KEY on the backend as a fallback image provider if you want the app to keep working when Hugging Face is unavailable.",
         "Restart local dev or redeploy the backend after updating the hosting environment.",
       ],
     };
@@ -519,11 +539,14 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
                 />
                 <p className="result-caption">
                   Variation {index + 1} ·{" "}
-                  {
-                    IMAGE_GENERATION_MODELS.find(
-                      (model) => model.id === item.model,
-                    )?.label
-                  }
+                  {IMAGE_GENERATION_MODELS.find(
+                    (model) => model.id === item.model,
+                  )?.label ||
+                    item.providerModel ||
+                    item.model}
+                  {item.provider === "google-gemini"
+                    ? " via Gemini fallback"
+                    : ""}
                 </p>
               </div>
             ))}

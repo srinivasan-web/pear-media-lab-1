@@ -191,7 +191,9 @@ export const generateImage = async (userPrompt, options = {}) => {
     return {
       imageUrl: `data:${data.mimeType};base64,${data.imageBase64}`,
       finalPrompt,
-      model: data.model || model,
+      model: data.requestedModel || model,
+      provider: data.provider || "hugging-face",
+      providerModel: data.model || data.requestedModel || model,
     };
   } catch (error) {
     console.error("Error generating image:", error);

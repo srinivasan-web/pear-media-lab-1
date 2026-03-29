@@ -6,11 +6,12 @@ This folder is the single application root.
 
 1. Copy `.env.example` to `.env`
 2. Copy `backend/.env.example` to `backend/.env`
-3. Set `VITE_GEMINI_KEY` in `.env`
+3. Optional for local-only legacy browser fallback: set `VITE_GEMINI_KEY` in `.env`
 4. Set `HF_TOKEN` in `backend/.env`
-5. Optional: set `HF_PROVIDER=hf-inference` in `backend/.env`
-6. Run `npm install`
-7. Run `npm run dev`
+5. Set `GEMINI_API_KEY` in `backend/.env` to enable Gemini prompt/image fallback on the server
+6. Optional: set `HF_PROVIDER=hf-inference` in `backend/.env`
+7. Run `npm install`
+8. Run `npm run dev`
 
 Useful scripts:
 
@@ -28,7 +29,9 @@ Image generation runs through the backend proxy so the Hugging Face token stays 
 - Default frontend path: `/api/image/generate`
 - Local dev proxy target: `http://localhost:8787/api/image/generate`
 - Server token env var: `HF_TOKEN` in `backend/.env`
+- Server Gemini fallback key: `GEMINI_API_KEY` in `backend/.env`
 - Preferred provider env var: `HF_PROVIDER=hf-inference`
+- Automatic fallback: if Hugging Face routed credits are depleted or the HF provider is unavailable, the backend can switch to Gemini image generation when `GEMINI_API_KEY` is configured
 
 ## Deployment
 

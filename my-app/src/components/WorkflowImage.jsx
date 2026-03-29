@@ -11,6 +11,23 @@ import usePersistentState from "../hooks/usePersistentState";
 
 const buildFriendlyError = (error) => {
   const message = error?.message || "Image generation failed";
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    error?.code === "HF_CREDITS_DEPLETED" ||
+    normalizedMessage.includes("monthly included credits")
+  ) {
+    return {
+      message:
+        "Hugging Face routed credits are depleted. Configure GEMINI_API_KEY on the backend to let the app continue with Gemini image generation.",
+      title: "Hugging Face credits depleted",
+      steps: [
+        "Set GEMINI_API_KEY in backend/.env for local development or in the backend hosting environment for production.",
+        "Restart local dev or redeploy the backend after updating the server environment variables.",
+        "If you want to keep using Hugging Face only, top up Hugging Face credits or upgrade the account plan.",
+      ],
+    };
+  }
 
   if (error?.status === 401 || error?.code === "HF_AUTH_INVALID") {
     return {
@@ -26,6 +43,8 @@ const buildFriendlyError = (error) => {
 
   if (
     error?.status === 500 ||
+    error?.code === "IMAGE_PROVIDER_UNAVAILABLE" ||
+    error?.code === "GEMINI_IMAGE_FALLBACK_FAILED" ||
     error?.code === "HF_TOKEN_INVALID_FORMAT" ||
     error?.code === "HF_TOKEN_MISSING" ||
     error?.code === "HF_IMAGE_FAILED"
@@ -35,6 +54,7 @@ const buildFriendlyError = (error) => {
       title: "Image generation server needs attention",
       steps: [
         "Set HF_TOKEN in backend/.env for local development or in your backend hosting environment, and confirm it starts with hf_.",
+        "Set GEMINI_API_KEY on the backend if you want an automatic image-generation fallback when Hugging Face is unavailable.",
         "Restart local dev or redeploy the backend after updating the server environment variables.",
         "If the message mentions a provider or model issue, keep HF_PROVIDER=hf-inference while debugging.",
       ],
