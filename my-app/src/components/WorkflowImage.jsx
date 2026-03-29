@@ -19,7 +19,7 @@ const buildFriendlyError = (error) => {
       steps: [
         "Create or refresh a Hugging Face User Access Token with inference access.",
         "Save it as HF_TOKEN in my-app/.env and restart the dev server.",
-        "Check your Hugging Face inference provider settings if auto-routing keeps selecting a provider you cannot use.",
+        "The app now prefers HF_PROVIDER=hf-inference to avoid auto-routing to a blocked provider like nscale.",
       ],
     };
   }
