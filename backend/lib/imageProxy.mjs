@@ -13,7 +13,7 @@ export const createImageProxyResponse = async ({ env, model, prompt, parameters 
       payload: {
         code: "HF_TOKEN_MISSING",
         message:
-          "HF_TOKEN is missing on the server. Add it to my-app/.env (or the hosting environment) and restart the app.",
+          "HF_TOKEN is missing on the server. Add it to backend/.env (or the hosting environment) and restart the app.",
         details: [
           "Use HF_TOKEN for the backend proxy.",
           "VITE_HF_TOKEN is only kept as a temporary fallback for older local env files.",
@@ -28,7 +28,7 @@ export const createImageProxyResponse = async ({ env, model, prompt, parameters 
       payload: {
         code: "HF_TOKEN_INVALID_FORMAT",
         message:
-          "HF_TOKEN does not look like a valid Hugging Face access token. Update it in my-app/.env and try again.",
+          "HF_TOKEN does not look like a valid Hugging Face access token. Update it in backend/.env and try again.",
         details: [
           "Use a Hugging Face User Access Token that starts with hf_.",
           "If you just changed the token locally, the dev proxy now reloads env values on each request.",

@@ -33,13 +33,21 @@ const parseEnvFile = (content) => {
   return entries;
 };
 
+const readEnvFile = (filePath) =>
+  existsSync(filePath) ? parseEnvFile(readFileSync(filePath, "utf8")) : {};
+
 export const getEnv = () => {
-  const envPath = resolve(process.cwd(), ".env");
-  const fileEnv =
-    existsSync(envPath) ? parseEnvFile(readFileSync(envPath, "utf8")) : {};
+  const backendEnv = readEnvFile(resolve(process.cwd(), "backend", ".env"));
+  const rootEnv = readEnvFile(resolve(process.cwd(), ".env"));
+  const legacyServerEnv = Object.fromEntries(
+    Object.entries(rootEnv).filter(([key]) =>
+      /^HF_|^IMAGE_API_PORT$|^NODE_ENV$/.test(key),
+    ),
+  );
 
   return {
-    ...fileEnv,
+    ...legacyServerEnv,
+    ...backendEnv,
     ...process.env,
   };
 };

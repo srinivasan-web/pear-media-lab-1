@@ -33,7 +33,7 @@ const buildFriendlyError = (error) => {
       title: "Image generation needs Hugging Face setup",
       steps: [
         "Create or refresh a Hugging Face User Access Token with inference permissions.",
-        "Set HF_TOKEN in your local or hosted server environment.",
+        "Set HF_TOKEN in backend/.env for local development or in your backend hosting environment.",
         "Keep HF_PROVIDER=hf-inference while debugging provider access.",
         "Try again after updating the token. Local dev now reloads env values on each request.",
       ],
@@ -50,8 +50,8 @@ const buildFriendlyError = (error) => {
       message,
       title: "Image generation server needs attention",
       steps: [
-        "Check the server-side environment variables for HF_TOKEN and confirm it starts with hf_.",
-        "Redeploy after updating the hosting environment.",
+        "Check backend/.env for local development or the backend hosting environment for production, and confirm HF_TOKEN starts with hf_.",
+        "Restart local dev or redeploy the backend after updating the hosting environment.",
       ],
     };
   }

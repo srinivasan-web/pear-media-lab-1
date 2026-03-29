@@ -3,11 +3,12 @@
 ## Local setup
 
 1. Copy `.env.example` to `.env`
-2. Set `VITE_GEMINI_KEY`
-3. Set `HF_TOKEN` to a Hugging Face User Access Token with inference permissions
-4. Optional: set `HF_PROVIDER=hf-inference`
-5. Run `npm install`
-6. Run `npm run dev`
+2. Copy `backend/.env.example` to `backend/.env`
+3. Set `VITE_GEMINI_KEY` in `.env`
+4. Set `HF_TOKEN` in `backend/.env`
+5. Optional: set `HF_PROVIDER=hf-inference` in `backend/.env`
+6. Run `npm install`
+7. Run `npm run dev`
 
 ## Image generation
 
@@ -16,7 +17,7 @@ Image generation now runs through a backend proxy, so the Hugging Face token sta
 - Frontend endpoint: `VITE_IMAGE_API_URL`
 - Default frontend path: `/api/image/generate`
 - Local dev proxy target: `http://localhost:8787/api/image/generate`
-- Server token env var: `HF_TOKEN`
+- Server token env var: `HF_TOKEN` in `backend/.env`
 - Preferred provider env var: `HF_PROVIDER=hf-inference`
 
 ## Deployment options
@@ -32,7 +33,7 @@ This repo supports three deployment paths:
 What it does:
 
 - builds the Vite frontend
-- starts `server.mjs`
+- starts `backend/server.mjs`
 - serves both the web app and `POST /api/image/generate`
 
 Render env vars:
@@ -76,8 +77,8 @@ Frontend deploy:
 
 Backend deploy:
 
-- This starts `api-server.mjs`
-- In Render, leave `Root Directory` empty
+- This starts `backend/api-server.mjs`
+- In Render, use `my-app` as the Root Directory when this folder is deployed from a larger repo, or leave it empty if `my-app` itself is the repo root
 - Set `HF_TOKEN`
 - Optional: set `HF_PROVIDER=hf-inference`
 
@@ -91,5 +92,5 @@ Helpful endpoints:
 This repo is now flat:
 
 - Frontend: `src`, `public`, `index.html`, `vite.config.js`
-- Backend: `server.mjs`, `api-server.mjs`, `lib/imageProxy.mjs`
+- Backend: `backend/server.mjs`, `backend/api-server.mjs`, `backend/lib/imageProxy.mjs`
 - Optional Vercel function: `api/image/generate.mjs`

@@ -18,7 +18,7 @@ const buildFriendlyError = (error) => {
       title: "Image generation needs Hugging Face setup",
       steps: [
         "Create or refresh a Hugging Face User Access Token with inference access.",
-        "Save it as HF_TOKEN in my-app/.env and restart the dev server.",
+        "Save it as HF_TOKEN in backend/.env for local development, then restart the dev server.",
         "The app now prefers HF_PROVIDER=hf-inference to avoid auto-routing to a blocked provider like nscale.",
       ],
     };
@@ -34,8 +34,8 @@ const buildFriendlyError = (error) => {
       message,
       title: "Image generation server needs attention",
       steps: [
-        "Set HF_TOKEN in the server environment for local dev or in your Vercel project settings, and confirm it starts with hf_.",
-        "Redeploy after updating the server environment variables.",
+        "Set HF_TOKEN in backend/.env for local development or in your backend hosting environment, and confirm it starts with hf_.",
+        "Restart local dev or redeploy the backend after updating the server environment variables.",
         "If the message mentions a provider or model issue, keep HF_PROVIDER=hf-inference while debugging.",
       ],
     };
