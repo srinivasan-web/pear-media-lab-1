@@ -8,7 +8,11 @@ import {
 } from "./lib/geminiProxy.mjs";
 import { createImageProxyResponse, IMAGE_ROUTE } from "./lib/imageProxy.mjs";
 
-const port = Number(getEnv().PORT || getEnv().IMAGE_API_PORT || 8787);
+const env = getEnv();
+const requestedPort = Number(env.PORT || env.IMAGE_API_PORT || 8788);
+const candidatePorts = env.PORT
+  ? [requestedPort]
+  : Array.from({ length: 6 }, (_, index) => requestedPort + index);
 
 const json = (res, statusCode, payload) => {
   res.writeHead(statusCode, {
@@ -122,6 +126,34 @@ const server = createServer(async (req, res) => {
   });
 });
 
-server.listen(port, () => {
-  console.log(`Image API listening on http://localhost:${port}`);
-});
+const listenOnPort = (portIndex = 0) => {
+  const port = candidatePorts[portIndex];
+
+  server.once("error", (error) => {
+    if (error?.code === "EADDRINUSE" && portIndex < candidatePorts.length - 1) {
+      const nextPort = candidatePorts[portIndex + 1];
+
+      console.warn(
+        `Port ${port} is already in use. Trying Image API on http://localhost:${nextPort} instead.`,
+      );
+      listenOnPort(portIndex + 1);
+      return;
+    }
+
+    if (error?.code === "EADDRINUSE") {
+      const attemptedPorts = candidatePorts.join(", ");
+
+      throw new Error(
+        `Image API could not find a free local port. Tried: ${attemptedPorts}. Stop the existing local servers or set IMAGE_API_PORT to an open port.`,
+      );
+    }
+
+    throw error;
+  });
+
+  server.listen(port, () => {
+    console.log(`Image API listening on http://localhost:${port}`);
+  });
+};
+
+listenOnPort();
