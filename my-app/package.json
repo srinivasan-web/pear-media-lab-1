@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "node dev.mjs",
     "dev:client": "vite",
-    "dev:server": "node backend/server.mjs",
-    "start:api": "node backend/api-server.mjs",
+    "dev:server": "node ../backend/server.mjs",
+    "start:api": "node ../backend/api-server.mjs",
     "build": "vite build",
-    "start": "node backend/server.mjs",
+    "start": "node ../backend/server.mjs",
     "render-build": "npm install && npm run build",
     "render-build:api": "npm install",
     "lint": "eslint .",
