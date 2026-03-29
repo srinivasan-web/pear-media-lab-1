@@ -149,6 +149,9 @@ const createGeminiImageResponse = async ({
               ],
             },
           ],
+          generationConfig: {
+            responseModalities: ["TEXT", "IMAGE"],
+          },
         }),
       },
     );
