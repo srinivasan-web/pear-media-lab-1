@@ -41,7 +41,7 @@ export const getEnv = () => {
   const rootEnv = readEnvFile(resolve(process.cwd(), ".env"));
   const legacyServerEnv = Object.fromEntries(
     Object.entries(rootEnv).filter(([key]) =>
-      /^HF_|^IMAGE_API_PORT$|^NODE_ENV$/.test(key),
+      /^HF_|^IMAGE_API_PORT$|^NODE_ENV$|^VITE_/.test(key),
     ),
   );
 

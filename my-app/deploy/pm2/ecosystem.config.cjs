@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "pear-media-lab",
       cwd: "/var/www/pear-media-lab/my-app",
-      script: "server.mjs",
+      script: "backend/server.mjs",
       interpreter: "node",
       instances: 1,
       exec_mode: "fork",
@@ -16,7 +16,7 @@ module.exports = {
     {
       name: "pear-media-lab-api",
       cwd: "/var/www/pear-media-lab/my-app",
-      script: "api-server.mjs",
+      script: "backend/api-server.mjs",
       interpreter: "node",
       instances: 1,
       exec_mode: "fork",

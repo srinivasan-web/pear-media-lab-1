@@ -1,31 +1,32 @@
 # Repo Structure
 
-This project is currently organized as one application folder plus deployment config.
+This folder is the single application root for Pear Media Lab.
 
-## frontend
+## Frontend
 
-Frontend source lives in `my-app/`:
-
-- `my-app/src/`
-- `my-app/public/`
-- `my-app/index.html`
-- `my-app/vite.config.js`
+- `src/`
+- `public/`
+- `index.html`
+- `vite.config.js`
+- `eslint.config.js`
 
 Frontend build output:
 
-- `my-app/dist/`
+- `dist/`
 
-## backend
+## Backend
 
-Backend source also lives in `my-app/`:
+- `backend/server.mjs`
+- `backend/api-server.mjs`
+- `backend/check-env.mjs`
+- `backend/lib/env.mjs`
+- `backend/lib/imageProxy.mjs`
 
-- `my-app/server.mjs`
-- `my-app/api-server.mjs`
-- `my-app/lib/imageProxy.mjs`
+## API adapters
 
-## deploy
+- `api/image/generate.mjs`
 
-Deployment config lives at the repo root and in `deploy/`:
+## Deployment
 
 - `render.yaml`
 - `render.api.yaml`
@@ -33,11 +34,11 @@ Deployment config lives at the repo root and in `deploy/`:
 - `deploy/nginx/pear-media-lab.conf`
 - `deploy/pm2/ecosystem.config.cjs`
 
-## local-only
+## Local-only
 
 These should stay local and should not contain committed secrets:
 
-- `my-app/.env`
-- `my-app/node_modules/`
+- `.env`
+- `backend/.env`
 - `node_modules/`
 - `.qodo/`

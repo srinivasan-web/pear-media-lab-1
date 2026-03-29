@@ -1,96 +1,42 @@
 # Pear Media Lab
 
-## Local setup
+The application now lives in a single canonical folder: `my-app/`.
 
-1. Copy `.env.example` to `.env`
-2. Copy `backend/.env.example` to `backend/.env`
-3. Set `VITE_GEMINI_KEY` in `.env`
-4. Set `HF_TOKEN` in `backend/.env`
-5. Optional: set `HF_PROVIDER=hf-inference` in `backend/.env`
-6. Run `npm install`
-7. Run `npm run dev`
+## Working locally
 
-## Image generation
+1. Run `cd my-app`
+2. Copy `.env.example` to `.env`
+3. Copy `backend/.env.example` to `backend/.env`
+4. Set `VITE_GEMINI_KEY` in `.env`
+5. Set `HF_TOKEN` in `backend/.env`
+6. Optional: set `HF_PROVIDER=hf-inference` in `backend/.env`
+7. Run `npm install`
+8. Run `npm run dev`
 
-Image generation now runs through a backend proxy, so the Hugging Face token stays on the server side instead of the browser bundle.
+Useful app scripts:
 
-- Frontend endpoint: `VITE_IMAGE_API_URL`
-- Default frontend path: `/api/image/generate`
-- Local dev proxy target: `http://localhost:8787/api/image/generate`
-- Server token env var: `HF_TOKEN` in `backend/.env`
-- Preferred provider env var: `HF_PROVIDER=hf-inference`
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run start:api`
+- `npm run check:env`
 
-## Deployment options
+## Deployment
 
-This repo supports three deployment paths:
+The repo keeps the Render manifests at the root and points them at `my-app/`.
 
-1. Full Render deploy
-2. VPS with PM2 and Nginx
-3. Vercel frontend with Render backend API
+- Full app: [render.yaml](/h:/pear-media-lab/render.yaml)
+- API-only service: [render.api.yaml](/h:/pear-media-lab/render.api.yaml)
 
-### 1. Full Render deploy
+App-specific deployment files stay inside `my-app/`:
 
-What it does:
+- PM2 config: [ecosystem.config.cjs](/h:/pear-media-lab/my-app/deploy/pm2/ecosystem.config.cjs)
+- Nginx config: [pear-media-lab.conf](/h:/pear-media-lab/my-app/deploy/nginx/pear-media-lab.conf)
+- Vercel config: [vercel.json](/h:/pear-media-lab/my-app/vercel.json)
 
-- builds the Vite frontend
-- starts `backend/server.mjs`
-- serves both the web app and `POST /api/image/generate`
+## Structure
 
-Render env vars:
-
-- `VITE_GEMINI_KEY`
-- `HF_TOKEN`
-- Optional: `HF_PROVIDER=hf-inference`
-
-### 2. VPS with PM2 and Nginx
-
-Use these files:
-
-- PM2 config: [ecosystem.config.cjs](/h:/pear-media-lab/deploy/pm2/ecosystem.config.cjs)
-- Nginx config: [pear-media-lab.conf](/h:/pear-media-lab/deploy/nginx/pear-media-lab.conf)
-
-Suggested server flow:
-
-1. Clone the repo to `/var/www/pear-media-lab`
-2. Run `cd /var/www/pear-media-lab`
-3. Run `npm install`
-4. Run `npm run build`
-5. Add production env vars
-6. Start with PM2:
-   - `pm2 start /var/www/pear-media-lab/deploy/pm2/ecosystem.config.cjs`
-7. Install the Nginx config and reload Nginx
-
-Default ports in the PM2 config:
-
-- frontend + API app on `8787`
-- backend-only API on `8788`
-
-### 3. Vercel frontend + Render backend API
-
-Frontend deploy:
-
-- Use `vercel.json`
-- Build output is `dist`
-- Set `VITE_GEMINI_KEY`
-- Set `VITE_IMAGE_API_URL` to your Render backend URL, for example:
-  `https://pear-media-lab-api.onrender.com/api/image/generate`
-
-Backend deploy:
-
-- This starts `backend/api-server.mjs`
-- In Render, use `my-app` as the Root Directory when this folder is deployed from a larger repo, or leave it empty if `my-app` itself is the repo root
-- Set `HF_TOKEN`
-- Optional: set `HF_PROVIDER=hf-inference`
-
-Helpful endpoints:
-
-- Full Render app health: `/health`
-- Backend-only API health: `/health`
-
-## Repo map
-
-This repo is now flat:
-
-- Frontend: `src`, `public`, `index.html`, `vite.config.js`
-- Backend: `backend/server.mjs`, `backend/api-server.mjs`, `backend/lib/imageProxy.mjs`
-- Optional Vercel function: `api/image/generate.mjs`
+- App root: `my-app/`
+- Frontend: `my-app/src`, `my-app/public`, `my-app/index.html`, `my-app/vite.config.js`
+- Backend: `my-app/backend/server.mjs`, `my-app/backend/api-server.mjs`, `my-app/backend/lib/imageProxy.mjs`
+- API adapter: `my-app/api/image/generate.mjs`
