@@ -1,4 +1,5 @@
-const DEFAULT_IMAGE_ROUTE = "/api/image/generate";
+const DEFAULT_IMAGE_ROUTE =
+  "https://pear-media-lab-1-2.onrender.com/api/image/generate";
 
 const deriveApiBaseUrl = (imageGenerationUrl) => {
   if (typeof window === "undefined") {

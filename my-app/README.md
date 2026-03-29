@@ -57,7 +57,7 @@ Default ports in the PM2 config:
 
 - Vercel config: [vercel.json](/h:/pear-media-lab/my-app/vercel.json)
 - Build output: `dist`
-- Set `VITE_IMAGE_API_URL` to your backend URL, for example `https://pear-media-lab-api.onrender.com/api/image/generate`
+- Set `VITE_IMAGE_API_URL` to your backend URL, for example `https://pear-media-lab-1-2.onrender.com/api/image/generate`
 
 ## Structure
 
