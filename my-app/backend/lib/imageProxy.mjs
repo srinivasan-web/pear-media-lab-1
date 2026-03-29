@@ -3,9 +3,10 @@ import { InferenceClient } from "@huggingface/inference";
 
 export const IMAGE_ROUTE = "/api/image/generate";
 
-const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 const GEMINI_IMAGE_MODEL_FALLBACKS = [
   DEFAULT_GEMINI_IMAGE_MODEL,
+  "gemini-2.5-flash-image",
   "gemini-2.5-flash-image-preview",
   "gemini-2.0-flash-preview-image-generation",
 ];
@@ -157,6 +158,7 @@ const createGeminiImageResponse = async ({
   requestedModel,
   requestedProvider,
 }) => {
+  const attemptedModels = [];
   let lastFailure = buildResponse(500, {
     code: "GEMINI_IMAGE_FALLBACK_FAILED",
     message: "Gemini image generation failed.",
@@ -164,6 +166,8 @@ const createGeminiImageResponse = async ({
   });
 
   for (const responseModel of candidateModels) {
+    attemptedModels.push(responseModel);
+
     try {
       const response = await fetch(
         `${GEMINI_IMAGE_BASE_URL}/${responseModel}:generateContent`,
@@ -201,7 +205,10 @@ const createGeminiImageResponse = async ({
         lastFailure = buildResponse(response.status || 500, {
           code: "GEMINI_IMAGE_FALLBACK_FAILED",
           message,
-          details: [`Gemini image model: ${responseModel}`],
+          details: [
+            `Gemini image model: ${responseModel}`,
+            `Attempted Gemini models: ${attemptedModels.join(", ")}`,
+          ],
         });
 
         if (
@@ -223,7 +230,10 @@ const createGeminiImageResponse = async ({
           code: "GEMINI_IMAGE_EMPTY",
           message:
             "Gemini returned a response without image data for this prompt.",
-          details: [`Gemini image model: ${responseModel}`],
+          details: [
+            `Gemini image model: ${responseModel}`,
+            `Attempted Gemini models: ${attemptedModels.join(", ")}`,
+          ],
         });
         continue;
       }
@@ -240,7 +250,10 @@ const createGeminiImageResponse = async ({
       lastFailure = buildResponse(500, {
         code: "GEMINI_IMAGE_FALLBACK_FAILED",
         message: error?.message || "Gemini image generation failed.",
-        details: [`Gemini image model: ${responseModel}`],
+        details: [
+          `Gemini image model: ${responseModel}`,
+          `Attempted Gemini models: ${attemptedModels.join(", ")}`,
+        ],
       });
     }
   }
