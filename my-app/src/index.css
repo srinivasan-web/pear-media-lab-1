@@ -1,0 +1,92 @@
+:root {
+  font-family:
+    "Aptos",
+    "Avenir Next",
+    "Segoe UI Variable",
+    "Segoe UI",
+    "Inter",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at top, #10213a 0%, #0a1020 46%, #050912 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 122, 89, 0.16), transparent 24%),
+    radial-gradient(circle at 90% 15%, rgba(45, 212, 191, 0.14), transparent 22%),
+    linear-gradient(145deg, #091221 0%, #070d18 45%, #04070e 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "Aptos Display",
+    "Avenir Next",
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    "Inter",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: -0.03em;
+}
+
+p,
+span,
+label,
+a,
+button,
+input,
+select,
+textarea {
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+p {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
