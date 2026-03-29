@@ -9,6 +9,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: GEMINI_API_KEY
+        sync: false
       - key: HF_TOKEN
         sync: false
       - key: HF_PROVIDER

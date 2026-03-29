@@ -1,5 +1,11 @@
 import { createServer } from "node:http";
 import { getEnv } from "./lib/env.mjs";
+import {
+  createGeminiAnalyzeResponse,
+  createGeminiEnhanceResponse,
+  GEMINI_ANALYZE_ROUTE,
+  GEMINI_ENHANCE_ROUTE,
+} from "./lib/geminiProxy.mjs";
 import { createImageProxyResponse, IMAGE_ROUTE } from "./lib/imageProxy.mjs";
 
 const port = Number(getEnv().PORT || getEnv().IMAGE_API_PORT || 8787);
@@ -56,6 +62,48 @@ const server = createServer(async (req, res) => {
         model,
         prompt,
         parameters,
+      });
+
+      json(res, result.statusCode, result.payload);
+    } catch (error) {
+      json(res, 500, {
+        code: "SERVER_ERROR",
+        message: error?.message || "Unexpected server error",
+      });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && requestUrl.pathname === GEMINI_ENHANCE_ROUTE) {
+    try {
+      const body = await getBody(req);
+      const payload = JSON.parse(body || "{}");
+      const result = await createGeminiEnhanceResponse({
+        env: getEnv(),
+        input: payload.input,
+        model: payload.model,
+        tone: payload.tone,
+      });
+
+      json(res, result.statusCode, result.payload);
+    } catch (error) {
+      json(res, 500, {
+        code: "SERVER_ERROR",
+        message: error?.message || "Unexpected server error",
+      });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && requestUrl.pathname === GEMINI_ANALYZE_ROUTE) {
+    try {
+      const body = await getBody(req);
+      const payload = JSON.parse(body || "{}");
+      const result = await createGeminiAnalyzeResponse({
+        base64Image: payload.base64Image,
+        detail: payload.detail,
+        env: getEnv(),
+        model: payload.model,
       });
 
       json(res, result.statusCode, result.payload);

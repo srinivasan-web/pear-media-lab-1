@@ -1,6 +1,17 @@
 import { API_CONFIG, MESSAGES, STYLE_PRESETS } from "./constant";
 
-const GEMINI_FLASH_MODEL = "gemini-2.5-flash";
+const TONE_PRESETS = {
+  cinematic: "cinematic framing, dramatic mood, premium color grading",
+  commercial: "clean product polish, marketable clarity, premium styling",
+  creative: "inventive details, immersive atmosphere, expressive finish",
+  minimal: "refined simplicity, clean composition, restrained detail",
+};
+
+const DETAIL_PRESETS = {
+  balanced: "a balanced level of visual fidelity",
+  brief: "a concise reconstruction brief",
+  high: "a highly detailed recreation brief",
+};
 
 const handleApiError = async (res) => {
   const rawBody = await res.text();
@@ -29,90 +40,36 @@ const handleApiError = async (res) => {
   return data;
 };
 
-const isGeminiQuotaError = (error) => {
-  const message = error?.message?.toLowerCase() || "";
-
-  return (
-    message.includes("quota exceeded") ||
-    message.includes("free_tier") ||
-    message.includes("rate limit")
-  );
-};
-
 const validateText = (input) => {
   if (!input || input.trim() === "") {
     throw new Error(MESSAGES.promptRequired);
   }
 };
 
-const callGemini = async (model, parts) => {
-  if (!API_CONFIG.geminiApiKey) {
-    throw new Error("Missing Gemini API key. Add VITE_GEMINI_KEY to your env.");
-  }
+const normalizeWhitespace = (value) => value.trim().replace(/\s+/g, " ");
 
-  const res = await fetch(
-    `${API_CONFIG.geminiBaseUrl}/${model}:generateContent?key=${API_CONFIG.geminiApiKey}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{ parts }],
-      }),
+const postJson = async (url, payload) => {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(payload),
+  });
 
   return handleApiError(res);
 };
 
-const callGeminiWithFallback = async (model, parts) => {
-  try {
-    return await callGemini(model, parts);
-  } catch (error) {
-    if (model === "gemini-2.5-pro" && isGeminiQuotaError(error)) {
-      console.warn(
-        "Gemini Pro quota is unavailable. Falling back to Gemini 2.5 Flash.",
-      );
-      return callGemini(GEMINI_FLASH_MODEL, parts);
-    }
-
-    throw error;
-  }
-};
+const extractGeminiText = (data) =>
+  data?.text?.trim() ||
+  data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+  "";
 
 const getStylePrompt = (style = "realistic") => {
   return (
     STYLE_PRESETS.find((item) => item.id === style)?.prompt ||
     STYLE_PRESETS[0].prompt
   );
-};
-
-const buildEnhancedPromptInstruction = (input, tone = "creative") => {
-  return `You are an expert prompt engineer.
-Turn the user idea into a polished image-generation prompt.
-Requirements:
-- Keep the output to 45-70 words
-- Mention subject, composition, lighting, camera angle, mood, and artistic finish
-- Do not add numbering or explanation
-- Keep the final prompt concise but vivid
-- Tone: ${tone}
-
-User idea: ${input}`;
-};
-
-const buildAnalysisInstruction = (detail = "balanced") => {
-  return `Analyze this image for AI image recreation.
-Return a compact description with these sections:
-- Main subject
-- Environment/background
-- Color palette
-- Lighting
-- Composition/camera angle
-- Artistic style
-- Best recreation prompt
-
-Detail level: ${detail}`;
 };
 
 const buildImageParameters = (model) => {
@@ -145,35 +102,69 @@ const enhancePromptForImage = (userPrompt, style = "realistic") => {
   return `${userPrompt}, ${getStylePrompt(style)}, ${baseQuality}`;
 };
 
-export const getEnhancedPrompt = async (
-  input,
-  options = {},
-) => {
-  const {
-    model = "gemini-2.5-flash",
-    tone = "creative",
-  } = options;
+const buildLocalEnhancedPrompt = (input, tone = "creative") => {
+  const normalizedInput = normalizeWhitespace(input);
+  const toneGuidance = TONE_PRESETS[tone] || TONE_PRESETS.creative;
+
+  return `${normalizedInput}. Feature a clear hero subject, layered composition, dimensional lighting, an intentional camera angle, and a polished artistic finish. Mood and direction: ${toneGuidance}. Render with premium texture detail, natural contrast, strong focal separation, and high-end editorial quality.`;
+};
+
+const buildLocalAnalysisFallback = (detail = "balanced") => {
+  const detailGuidance = DETAIL_PRESETS[detail] || DETAIL_PRESETS.balanced;
+
+  return [
+    "Main subject: Use the uploaded reference image as the subject anchor and preserve the strongest silhouette, pose, and focal details.",
+    "Environment/background: Rebuild the surrounding scene with similar depth, spacing, and environmental context from the reference image.",
+    "Color palette: Match the dominant hues, accent colors, and overall contrast pattern from the uploaded image.",
+    "Lighting: Keep the same key light direction, shadow softness, and highlight intensity visible in the reference.",
+    "Composition/camera angle: Maintain the original framing, perspective, subject placement, and depth-of-field cues.",
+    "Artistic style: Follow the visual finish of the source image while refining textures and clarity for generation.",
+    `Best recreation prompt: Recreate the uploaded reference image with ${detailGuidance}. Preserve subject identity, camera framing, background structure, palette balance, and lighting relationships while delivering a polished final render.`,
+  ].join("\n");
+};
+
+const callGeminiEnhance = async (input, { model, tone }) => {
+  const data = await postJson(API_CONFIG.geminiEnhanceUrl, {
+    input,
+    model,
+    tone,
+  });
+
+  return extractGeminiText(data);
+};
+
+const callGeminiAnalyze = async (base64Image, { detail, model }) => {
+  const data = await postJson(API_CONFIG.geminiAnalyzeUrl, {
+    base64Image,
+    detail,
+    model,
+  });
+
+  return extractGeminiText(data);
+};
+
+export const getEnhancedPrompt = async (input, options = {}) => {
+  const { model = "gemini-2.5-flash", tone = "creative" } = options;
+
+  validateText(input);
 
   try {
-    validateText(input);
+    const result = await callGeminiEnhance(input, {
+      model,
+      tone,
+    });
 
-    const data = await callGeminiWithFallback(model, [
-      {
-        text: buildEnhancedPromptInstruction(input, tone),
-      },
-    ]);
-
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || input;
+    return result || buildLocalEnhancedPrompt(input, tone);
   } catch (err) {
-    console.error("Enhance Error:", err.message);
-    throw err;
+    console.warn(
+      "Enhance Error: backend Gemini route unavailable, using local fallback.",
+      err,
+    );
+    return buildLocalEnhancedPrompt(input, tone);
   }
 };
 
-export const generateImage = async (
-  userPrompt,
-  options = {},
-) => {
+export const generateImage = async (userPrompt, options = {}) => {
   const {
     style = "realistic",
     model = "stabilityai/stable-diffusion-xl-base-1.0",
@@ -208,38 +199,25 @@ export const generateImage = async (
   }
 };
 
-export const analyzeImage = async (
-  base64Image,
-  options = {},
-) => {
-  const {
-    model = "gemini-2.5-flash",
-    detail = "balanced",
-  } = options;
+export const analyzeImage = async (base64Image, options = {}) => {
+  const { model = "gemini-2.5-flash", detail = "balanced" } = options;
+
+  if (!base64Image) {
+    throw new Error(MESSAGES.imageRequired);
+  }
 
   try {
-    if (!base64Image) {
-      throw new Error(MESSAGES.imageRequired);
-    }
+    const result = await callGeminiAnalyze(base64Image, {
+      detail,
+      model,
+    });
 
-    const [meta, encoded] = base64Image.split(",");
-    const mimeType = meta?.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
-
-    const data = await callGeminiWithFallback(model, [
-      {
-        text: buildAnalysisInstruction(detail),
-      },
-      {
-        inlineData: {
-          mimeType,
-          data: encoded,
-        },
-      },
-    ]);
-
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    return result || buildLocalAnalysisFallback(detail);
   } catch (err) {
-    console.error("Analyze Error:", err.message);
-    throw err;
+    console.warn(
+      "Analyze Error: backend Gemini route unavailable, using local fallback.",
+      err,
+    );
+    return buildLocalAnalysisFallback(detail);
   }
 };

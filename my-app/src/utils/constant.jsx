@@ -1,3 +1,26 @@
+const DEFAULT_IMAGE_ROUTE = "/api/image/generate";
+
+const deriveApiBaseUrl = (imageGenerationUrl) => {
+  if (typeof window === "undefined") {
+    return "/api";
+  }
+
+  try {
+    const resolvedUrl = new URL(imageGenerationUrl, window.location.origin);
+    const pathname = resolvedUrl.pathname.endsWith("/image/generate")
+      ? resolvedUrl.pathname.replace(/\/image\/generate$/, "")
+      : "/api";
+
+    return `${resolvedUrl.origin}${pathname}`;
+  } catch {
+    return "/api";
+  }
+};
+
+const imageGenerationUrl =
+  import.meta.env.VITE_IMAGE_API_URL || DEFAULT_IMAGE_ROUTE;
+const apiBaseUrl = deriveApiBaseUrl(imageGenerationUrl);
+
 export const DEFAULT_PROMPTS = {
   greeting: "Hello! How can I assist you today?",
   error: "An error occurred. Please try again.",
@@ -6,9 +29,10 @@ export const DEFAULT_PROMPTS = {
 };
 
 export const API_CONFIG = {
-  geminiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
-  geminiApiKey: import.meta.env.VITE_GEMINI_KEY || "",
-  imageGenerationUrl: import.meta.env.VITE_IMAGE_API_URL || "/api/image/generate",
+  apiBaseUrl,
+  geminiAnalyzeUrl: `${apiBaseUrl}/gemini/analyze`,
+  geminiEnhanceUrl: `${apiBaseUrl}/gemini/enhance`,
+  imageGenerationUrl,
   timeout: 5000,
   retries: 2,
 };
