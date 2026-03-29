@@ -27,6 +27,7 @@ Local port defaults:
 - `npm run start` serves the full app on `8787`
 - `npm run start:api` serves the API-only backend on `8788`
 - If the local API-only port is already busy, `start:api` will try the next local port automatically
+- Optional override: use `APP_PORT` for the full app and `IMAGE_API_PORT` for the API-only server
 
 ## Image generation
 
@@ -36,6 +37,7 @@ Image generation runs through the backend proxy so the Hugging Face token stays 
 - Default frontend path: `/api/image/generate`
 - Local dev proxy target: `http://localhost:8787/api/image/generate`
 - Local API-only target: `http://localhost:8788/api/image/generate`
+- Full app port override: `APP_PORT=8787`
 - Server token env var: `HF_TOKEN` in `backend/.env`
 - Server Gemini fallback key: `GEMINI_API_KEY` in `backend/.env`
 - Preferred Gemini image fallback model: `GEMINI_IMAGE_MODEL=gemini-2.5-flash-image`

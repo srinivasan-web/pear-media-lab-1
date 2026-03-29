@@ -11,7 +11,7 @@ import {
 import { createImageProxyResponse, IMAGE_ROUTE } from "./lib/imageProxy.mjs";
 
 const env = getEnv();
-const port = Number(env.PORT || env.IMAGE_API_PORT || 8787);
+const port = Number(env.PORT || env.APP_PORT || 8787);
 const distDir = join(process.cwd(), "dist");
 
 const CONTENT_TYPES = {
