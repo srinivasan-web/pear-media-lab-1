@@ -9,6 +9,58 @@ import {
 } from "../utils/constant";
 import usePersistentState from "../hooks/usePersistentState";
 
+const buildFriendlyError = (error) => {
+  const message = error?.message || "Something went wrong. Try again.";
+
+  if (
+    message.toLowerCase().includes("quota exceeded") ||
+    message.toLowerCase().includes("free_tier")
+  ) {
+    return {
+      message:
+        "Gemini Pro quota is unavailable for this key right now. The app will use Gemini Flash when possible, but you may need to switch back to Flash in the model picker.",
+      title: "Gemini quota limit reached",
+      steps: [
+        "Use Gemini 2.5 Flash for free-tier friendly requests.",
+        "Wait for the quota window to reset if you want to try Pro again.",
+      ],
+    };
+  }
+
+  if (error?.status === 401 || error?.code === "HF_AUTH_INVALID") {
+    return {
+      message,
+      title: "Image generation needs Hugging Face setup",
+      steps: [
+        "Set HF_TOKEN in your local or hosted server environment.",
+        "Keep HF_PROVIDER=hf-inference while debugging provider access.",
+        "Redeploy or restart the app after updating the token.",
+      ],
+    };
+  }
+
+  if (
+    error?.status === 500 ||
+    error?.code === "HF_TOKEN_MISSING" ||
+    error?.code === "HF_IMAGE_FAILED"
+  ) {
+    return {
+      message,
+      title: "Image generation server needs attention",
+      steps: [
+        "Check the server-side environment variables for HF_TOKEN.",
+        "Redeploy after updating the hosting environment.",
+      ],
+    };
+  }
+
+  return {
+    message,
+    title: "",
+    steps: [],
+  };
+};
+
 function WorkflowPrompt({ appTheme, setAppTheme }) {
   const [userPrompt, setUserPrompt] = usePersistentState(
     "pear-text-user-prompt",
@@ -26,6 +78,7 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
   const [history, setHistory] = usePersistentState("pear-text-history", []);
   const [loadingAction, setLoadingAction] = useState("");
   const [error, setError] = useState("");
+  const [setupHint, setSetupHint] = useState(null);
   const [selectedModel, setSelectedModel] = usePersistentState(
     "pear-text-selected-model",
     TEXT_MODELS[0].id,
@@ -76,6 +129,7 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
     try {
       setLoadingAction("Enhancing prompt...");
       setError("");
+      setSetupHint(null);
       setApprovedPrompt("");
       setGeneratedImages([]);
 
@@ -96,7 +150,9 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
         ...prev,
       ]);
     } catch (err) {
-      setError(err.message || "Something went wrong. Try again.");
+      const friendlyError = buildFriendlyError(err);
+      setError(friendlyError.message || "Something went wrong. Try again.");
+      setSetupHint(friendlyError.steps.length > 0 ? friendlyError : null);
     } finally {
       setLoadingAction("");
     }
@@ -110,6 +166,7 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
 
     setApprovedPrompt(enhancedPrompt);
     setError("");
+    setSetupHint(null);
   };
 
   const handleGenerateImages = async () => {
@@ -121,15 +178,18 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
     try {
       setLoadingAction("Generating images...");
       setError("");
+      setSetupHint(null);
 
-      const results = await Promise.all(
-        Array.from({ length: variationCount }).map(() =>
-          generateImage(approvedPrompt, {
-            style,
-            model: imageModel,
-          }),
-        ),
-      );
+      const results = [];
+
+      for (let index = 0; index < variationCount; index += 1) {
+        setLoadingAction(`Generating image ${index + 1} of ${variationCount}...`);
+        const result = await generateImage(approvedPrompt, {
+          style,
+          model: imageModel,
+        });
+        results.push(result);
+      }
 
       setGeneratedImages(results);
       setHistory((prev) => [
@@ -149,7 +209,9 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
         ...prev,
       ]);
     } catch (err) {
-      setError(err.message || "Failed to generate images");
+      const friendlyError = buildFriendlyError(err);
+      setError(friendlyError.message || "Failed to generate images");
+      setSetupHint(friendlyError.steps.length > 0 ? friendlyError : null);
     } finally {
       setLoadingAction("");
     }
@@ -169,6 +231,7 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
     setApprovedPrompt("");
     setGeneratedImages([]);
     setError("");
+    setSetupHint(null);
     setHistoryQuery("");
   };
 
@@ -371,7 +434,19 @@ function WorkflowPrompt({ appTheme, setAppTheme }) {
             </button>
           </div>
 
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <div className="error-panel">
+              <p className="error">{error}</p>
+              {setupHint && (
+                <div className="setup-hint">
+                  <h4>{setupHint.title}</h4>
+                  {setupHint.steps.map((step) => (
+                    <p key={step}>{step}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="card">

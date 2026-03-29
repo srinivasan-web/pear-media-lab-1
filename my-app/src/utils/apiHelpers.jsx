@@ -1,5 +1,7 @@
 import { API_CONFIG, MESSAGES, STYLE_PRESETS } from "./constant";
 
+const GEMINI_FLASH_MODEL = "gemini-2.5-flash";
+
 const handleApiError = async (res) => {
   const rawBody = await res.text();
   let data = {};
@@ -27,6 +29,16 @@ const handleApiError = async (res) => {
   return data;
 };
 
+const isGeminiQuotaError = (error) => {
+  const message = error?.message?.toLowerCase() || "";
+
+  return (
+    message.includes("quota exceeded") ||
+    message.includes("free_tier") ||
+    message.includes("rate limit")
+  );
+};
+
 const validateText = (input) => {
   if (!input || input.trim() === "") {
     throw new Error(MESSAGES.promptRequired);
@@ -52,6 +64,21 @@ const callGemini = async (model, parts) => {
   );
 
   return handleApiError(res);
+};
+
+const callGeminiWithFallback = async (model, parts) => {
+  try {
+    return await callGemini(model, parts);
+  } catch (error) {
+    if (model === "gemini-2.5-pro" && isGeminiQuotaError(error)) {
+      console.warn(
+        "Gemini Pro quota is unavailable. Falling back to Gemini 2.5 Flash.",
+      );
+      return callGemini(GEMINI_FLASH_MODEL, parts);
+    }
+
+    throw error;
+  }
 };
 
 const getStylePrompt = (style = "realistic") => {
@@ -130,7 +157,7 @@ export const getEnhancedPrompt = async (
   try {
     validateText(input);
 
-    const data = await callGemini(model, [
+    const data = await callGeminiWithFallback(model, [
       {
         text: buildEnhancedPromptInstruction(input, tone),
       },
@@ -198,7 +225,7 @@ export const analyzeImage = async (
     const [meta, encoded] = base64Image.split(",");
     const mimeType = meta?.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
 
-    const data = await callGemini(model, [
+    const data = await callGeminiWithFallback(model, [
       {
         text: buildAnalysisInstruction(detail),
       },
