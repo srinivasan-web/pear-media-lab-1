@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# pear-media-lab
-=======
 # Pear Media Lab
 
 ## Local setup
@@ -24,7 +21,7 @@ Image generation now runs through a backend proxy, so the Hugging Face token sta
 
 ## Deployment options
 
-This repo now supports three deployment paths:
+This repo supports three deployment paths:
 
 1. Full Render deploy
 2. VPS with PM2 and Nginx
@@ -32,12 +29,10 @@ This repo now supports three deployment paths:
 
 ### 1. Full Render deploy
 
-Use [render.yaml](/h:/pear-media-lab/render.yaml).
-
 What it does:
 
 - builds the Vite frontend
-- starts [server.mjs](/h:/pear-media-lab/my-app/server.mjs)
+- starts `server.mjs`
 - serves both the web app and `POST /api/image/generate`
 
 Render env vars:
@@ -56,7 +51,7 @@ Use these files:
 Suggested server flow:
 
 1. Clone the repo to `/var/www/pear-media-lab`
-2. Run `cd /var/www/pear-media-lab/my-app`
+2. Run `cd /var/www/pear-media-lab`
 3. Run `npm install`
 4. Run `npm run build`
 5. Add production env vars
@@ -73,16 +68,16 @@ Default ports in the PM2 config:
 
 Frontend deploy:
 
-- Use [vercel.json](/h:/pear-media-lab/vercel.json)
-- Build output is `my-app/dist`
+- Use `vercel.json`
+- Build output is `dist`
 - Set `VITE_GEMINI_KEY`
 - Set `VITE_IMAGE_API_URL` to your Render backend URL, for example:
   `https://pear-media-lab-api.onrender.com/api/image/generate`
 
 Backend deploy:
 
-- Use [render.api.yaml](/h:/pear-media-lab/render.api.yaml)
-- This starts [api-server.mjs](/h:/pear-media-lab/my-app/api-server.mjs)
+- This starts `api-server.mjs`
+- In Render, leave `Root Directory` empty
 - Set `HF_TOKEN`
 - Optional: set `HF_PROVIDER=hf-inference`
 
@@ -93,11 +88,8 @@ Helpful endpoints:
 
 ## Repo map
 
-If you want to think about the project as `frontend`, `backend`, and `deploy`, use this map:
+This repo is now flat:
 
-- Frontend: `my-app/src`, `my-app/public`, `my-app/index.html`, `my-app/vite.config.js`
-- Backend: `my-app/server.mjs`, `my-app/api-server.mjs`, `my-app/lib/imageProxy.mjs`
-- Deploy: `render.yaml`, `render.api.yaml`, `vercel.json`, `deploy/nginx/pear-media-lab.conf`, `deploy/pm2/ecosystem.config.cjs`
-
-There is also a root structure guide at [REPO_STRUCTURE.md](/h:/pear-media-lab/REPO_STRUCTURE.md).
->>>>>>> 0ec8fd7 (production)
+- Frontend: `src`, `public`, `index.html`, `vite.config.js`
+- Backend: `server.mjs`, `api-server.mjs`, `lib/imageProxy.mjs`
+- Optional Vercel function: `api/image/generate.mjs`
