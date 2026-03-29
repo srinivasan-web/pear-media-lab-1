@@ -7,7 +7,14 @@
     "dev": "node dev.mjs",
     "dev:client": "vite",
     "dev:server": "node server.mjs",
+<<<<<<< HEAD:my-app/package.json
+=======
+    "start:api": "node api-server.mjs",
+>>>>>>> 0ec8fd7 (production):package.json
     "build": "vite build",
+    "start": "node server.mjs",
+    "render-build": "npm install && npm run build",
+    "render-build:api": "npm install",
     "lint": "eslint .",
     "preview": "vite preview"
   },
