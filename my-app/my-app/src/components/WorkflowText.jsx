@@ -32,26 +32,17 @@ const buildFriendlyError = (error) => {
       message,
       title: "Image generation needs Hugging Face setup",
       steps: [
-<<<<<<< HEAD:my-app/src/components/WorkflowText.jsx
-        "Set HF_TOKEN in your local or hosted server environment.",
-        "Keep HF_PROVIDER=hf-inference while debugging provider access.",
-        "Redeploy or restart the app after updating the token.",
-=======
         "Create or refresh a Hugging Face User Access Token with inference permissions.",
-        "Set HF_TOKEN in your local or hosted server environment.",
+        "Set HF_TOKEN in backend/.env for local development or in your backend hosting environment.",
         "Keep HF_PROVIDER=hf-inference while debugging provider access.",
         "Try again after updating the token. Local dev now reloads env values on each request.",
->>>>>>> 0ec8fd7 (production):src/components/WorkflowText.jsx
       ],
     };
   }
 
   if (
     error?.status === 500 ||
-<<<<<<< HEAD:my-app/src/components/WorkflowText.jsx
-=======
     error?.code === "HF_TOKEN_INVALID_FORMAT" ||
->>>>>>> 0ec8fd7 (production):src/components/WorkflowText.jsx
     error?.code === "HF_TOKEN_MISSING" ||
     error?.code === "HF_IMAGE_FAILED"
   ) {
@@ -59,12 +50,8 @@ const buildFriendlyError = (error) => {
       message,
       title: "Image generation server needs attention",
       steps: [
-<<<<<<< HEAD:my-app/src/components/WorkflowText.jsx
-        "Check the server-side environment variables for HF_TOKEN.",
-=======
-        "Check the server-side environment variables for HF_TOKEN and confirm it starts with hf_.",
->>>>>>> 0ec8fd7 (production):src/components/WorkflowText.jsx
-        "Redeploy after updating the hosting environment.",
+        "Check backend/.env for local development or the backend hosting environment for production, and confirm HF_TOKEN starts with hf_.",
+        "Restart local dev or redeploy the backend after updating the hosting environment.",
       ],
     };
   }

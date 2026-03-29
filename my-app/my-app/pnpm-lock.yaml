@@ -11,6 +11,9 @@ importers:
       '@huggingface/inference':
         specifier: ^4.13.15
         version: 4.13.15
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.3.1
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -20,6 +23,9 @@ importers:
       react-router-dom:
         specifier: ^7.13.2
         version: 7.13.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      vite:
+        specifier: ^8.0.1
+        version: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
     devDependencies:
       '@babel/core':
         specifier: ^7.29.0
@@ -54,9 +60,6 @@ importers:
       globals:
         specifier: ^17.4.0
         version: 17.4.0
-      vite:
-        specifier: ^8.0.1
-        version: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
 
 packages:
 
@@ -457,6 +460,10 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
+
+  dotenv@17.3.1:
+    resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
+    engines: {node: '>=12'}
 
   electron-to-chromium@1.5.328:
     resolution: {integrity: sha512-QNQ5l45DzYytThO21403XN3FvK0hOkWDG8viNf6jqS42msJ8I4tGDSpBCgvDRRPnkffafiwAym2X2eHeGD2V0w==}
@@ -1310,6 +1317,8 @@ snapshots:
   deep-is@0.1.4: {}
 
   detect-libc@2.1.2: {}
+
+  dotenv@17.3.1: {}
 
   electron-to-chromium@1.5.328: {}
 

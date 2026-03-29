@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "node dev.mjs",
     "dev:client": "vite",
-    "dev:server": "node server.mjs",
-    "start:api": "node api-server.mjs",
+    "dev:server": "node backend/server.mjs",
+    "start:api": "node backend/api-server.mjs",
     "build": "vite build",
-    "start": "node server.mjs",
+    "start": "node backend/server.mjs",
     "render-build": "npm install && npm run build",
     "render-build:api": "npm install",
     "lint": "eslint .",
@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.15",
+    "dotenv": "^17.3.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.2"
+    "react-router-dom": "^7.13.2",
+    "vite": "^8.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -32,7 +34,6 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.4.0",
-    "vite": "^8.0.1"
+    "globals": "^17.4.0"
   }
 }
