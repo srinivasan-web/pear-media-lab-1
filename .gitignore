@@ -1,19 +1,17 @@
 # Dependencies
 node_modules/
-my-app/node_modules/
 
 # Build output
 dist/
 dist-ssr/
-my-app/dist/
 
 # Environment files
 .env
 .env.*
 !.env.example
-my-app/.env
-my-app/.env.*
-!my-app/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Logs
 logs

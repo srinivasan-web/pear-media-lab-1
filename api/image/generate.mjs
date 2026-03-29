@@ -1,4 +1,4 @@
-import { createImageProxyResponse } from "../../my-app/lib/imageProxy.mjs";
+import { createImageProxyResponse } from "../../backend/lib/imageProxy.mjs";
 
 const readJsonBody = async (req) => {
   if (req.body && typeof req.body === "object") {
