@@ -1,12 +1,15 @@
 import { spawn } from "node:child_process";
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const children = [];
+const packageManager = process.env.npm_execpath?.toLowerCase().includes("pnpm")
+  ? "pnpm"
+  : "npm";
 
 const start = (scriptName) => {
-  const child = spawn(npmCommand, ["run", scriptName], {
+  const child = spawn(`${packageManager} run ${scriptName}`, {
     stdio: "inherit",
     cwd: process.cwd(),
+    shell: true,
   });
 
   children.push(child);
@@ -19,7 +22,9 @@ const start = (scriptName) => {
 
 const shutdown = () => {
   for (const child of children) {
-    child.kill("SIGTERM");
+    if (!child.killed) {
+      child.kill();
+    }
   }
 };
 

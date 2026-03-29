@@ -18,7 +18,11 @@ const buildFriendlyError = (error) => {
       title: "Image generation needs Hugging Face setup",
       steps: [
         "Create or refresh a Hugging Face User Access Token with inference access.",
+<<<<<<< HEAD:my-app/src/components/WorkflowImage.jsx
         "Save it as HF_TOKEN in my-app/.env and restart the dev server.",
+=======
+        "Save it as HF_TOKEN in my-app/.env.",
+>>>>>>> 0ec8fd7 (production):src/components/WorkflowImage.jsx
         "The app now prefers HF_PROVIDER=hf-inference to avoid auto-routing to a blocked provider like nscale.",
       ],
     };
@@ -26,6 +30,10 @@ const buildFriendlyError = (error) => {
 
   if (
     error?.status === 500 ||
+<<<<<<< HEAD:my-app/src/components/WorkflowImage.jsx
+=======
+    error?.code === "HF_TOKEN_INVALID_FORMAT" ||
+>>>>>>> 0ec8fd7 (production):src/components/WorkflowImage.jsx
     error?.code === "HF_TOKEN_MISSING" ||
     error?.code === "HF_IMAGE_FAILED"
   ) {
@@ -33,7 +41,11 @@ const buildFriendlyError = (error) => {
       message,
       title: "Image generation server needs attention",
       steps: [
+<<<<<<< HEAD:my-app/src/components/WorkflowImage.jsx
         "Set HF_TOKEN in the server environment for local dev or in your Vercel project settings.",
+=======
+        "Set HF_TOKEN in the server environment for local dev or in your Vercel project settings, and confirm it starts with hf_.",
+>>>>>>> 0ec8fd7 (production):src/components/WorkflowImage.jsx
         "Redeploy after updating the server environment variables.",
         "If the message mentions a provider or model issue, keep HF_PROVIDER=hf-inference while debugging.",
       ],

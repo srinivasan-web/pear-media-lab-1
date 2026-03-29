@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pear-media-lab
+    runtime: node
+    rootDir: my-app
+    buildCommand: npm run render-build
+    healthCheckPath: /health
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: VITE_GEMINI_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: HF_PROVIDER
+        value: hf-inference

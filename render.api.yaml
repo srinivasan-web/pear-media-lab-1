@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: pear-media-lab-api
+    runtime: node
+    rootDir: my-app
+    buildCommand: npm run render-build:api
+    startCommand: npm run start:api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: HF_TOKEN
+        sync: false
+      - key: HF_PROVIDER
+        value: hf-inference

@@ -22,6 +22,21 @@ export const createImageProxyResponse = async ({ env, model, prompt, parameters 
     };
   }
 
+  if (!token.startsWith("hf_")) {
+    return {
+      statusCode: 500,
+      payload: {
+        code: "HF_TOKEN_INVALID_FORMAT",
+        message:
+          "HF_TOKEN does not look like a valid Hugging Face access token. Update it in my-app/.env and try again.",
+        details: [
+          "Use a Hugging Face User Access Token that starts with hf_.",
+          "If you just changed the token locally, the dev proxy now reloads env values on each request.",
+        ],
+      },
+    };
+  }
+
   if (!model || !prompt) {
     return {
       statusCode: 400,
@@ -74,6 +89,7 @@ const mapProviderError = (error, provider) => {
           "Hugging Face rejected the server token for image generation. Refresh HF_TOKEN, restart the app, and confirm the selected provider can use that token.",
         details: [
           `Provider in use: ${provider}`,
+          "Create a Hugging Face User Access Token with inference permissions.",
           "Set HF_TOKEN with a valid Hugging Face User Access Token.",
           "If needed, change HF_PROVIDER in the server environment to a provider your account can access.",
         ],
