@@ -24,6 +24,22 @@ const buildFriendlyError = (error) => {
     };
   }
 
+  if (
+    error?.status === 500 ||
+    error?.code === "HF_TOKEN_MISSING" ||
+    error?.code === "HF_IMAGE_FAILED"
+  ) {
+    return {
+      message,
+      title: "Image generation server needs attention",
+      steps: [
+        "Set HF_TOKEN in the server environment for local dev or in your Vercel project settings.",
+        "Redeploy after updating the server environment variables.",
+        "If the message mentions a provider or model issue, keep HF_PROVIDER=hf-inference while debugging.",
+      ],
+    };
+  }
+
   return {
     message,
     title: "",

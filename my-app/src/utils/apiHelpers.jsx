@@ -1,7 +1,16 @@
 import { API_CONFIG, MESSAGES, STYLE_PRESETS } from "./constant";
 
 const handleApiError = async (res) => {
-  const data = await res.json().catch(() => ({}));
+  const rawBody = await res.text();
+  let data = {};
+
+  try {
+    data = rawBody ? JSON.parse(rawBody) : {};
+  } catch {
+    data = {
+      message: rawBody,
+    };
+  }
 
   if (!res.ok) {
     const message =

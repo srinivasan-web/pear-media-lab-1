@@ -1,5 +1,24 @@
-import { loadEnv } from "vite";
 import { createImageProxyResponse } from "../../my-app/lib/imageProxy.mjs";
+
+const readJsonBody = async (req) => {
+  if (req.body && typeof req.body === "object") {
+    return req.body;
+  }
+
+  const chunks = [];
+
+  for await (const chunk of req) {
+    chunks.push(chunk);
+  }
+
+  const rawBody = Buffer.concat(chunks).toString("utf8");
+
+  if (!rawBody) {
+    return {};
+  }
+
+  return JSON.parse(rawBody);
+};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -10,13 +29,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const env = loadEnv(process.env.VERCEL_ENV || process.env.NODE_ENV || "production", process.cwd(), "");
-  const { model, prompt, parameters } = req.body || {};
+  const { model, prompt, parameters } = await readJsonBody(req);
   const result = await createImageProxyResponse({
-    env: {
-      ...env,
-      ...process.env,
-    },
+    env: process.env,
     model,
     prompt,
     parameters,
