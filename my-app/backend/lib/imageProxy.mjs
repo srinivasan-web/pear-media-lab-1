@@ -7,8 +7,6 @@ const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 const GEMINI_IMAGE_MODEL_FALLBACKS = [
   DEFAULT_GEMINI_IMAGE_MODEL,
   "gemini-2.5-flash-image",
-  "gemini-2.5-flash-image-preview",
-  "gemini-2.0-flash-preview-image-generation",
 ];
 const GEMINI_IMAGE_BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta/models";
